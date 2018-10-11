@@ -17,15 +17,6 @@ describe Oystercard do
       raise_error(RuntimeError, "Maximum balance of #{maximum_balance} exceeded")
     end
       
-  describe '#deduct' do
-    it { is_expected.to respond_to(:deduct).with(1).argument }
-    
-    it 'deducts an amount from the balance' do
-    subject.top_up(20)
-    expect{ subject.deduct 3}.to change{ subject.balance }.by (-3)
-    end
-  end
-  
     describe '#in_journey' do
     
       it 'is initially not in a journey' do
@@ -33,18 +24,30 @@ describe Oystercard do
       end
     
       it "can touch in" do
+        subject.top_up(5)
         subject.touch_in
         expect(subject).to be_in_journey
       end
     
       it "can touch out" do
+        subject.top_up(5)
         subject.touch_in
         subject.touch_out
         expect(subject).not_to be_in_journey
       end
-    
     end
-  
+    
+    it 'will not touch in if below minimum balance' do 
+      expect{ subject.touch_in }.to raise_error "Insufficient balance to touch in"
+    end
+    
+    it "it deducts charge after touch in" do
+      subject.top_up(10)
+      subject.touch_in
+      expect{subject.touch_out }.to change{ subject.balance }.by(-Oystercard::MINIMUM_CHARGE)
+    end 
+    
   end
+  
   
   end
